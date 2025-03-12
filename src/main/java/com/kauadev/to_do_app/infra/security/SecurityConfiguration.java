@@ -2,9 +2,13 @@ package com.kauadev.to_do_app.infra.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 // aqui definimos a nossa configuração em como será o comportamento do spring security
@@ -35,4 +39,24 @@ public class SecurityConfiguration {
                 .build(); // builda e retorna um SecurityFilterChain
     }
 
+    // configurando o authenticationManager, que gerencia o processo de autenticação
+
+    // É um bean, logo será um objeto gerenciado e armazenado pelo Spring, por baixo
+    // dos panos.
+    // sempre que precisar de um authenticationManager em algum lugar pra ser
+    // injetado, o spring vem e pega daqui a instância.
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    // retorna uma nova instancia do decodificador, por baixo dos panos.
+    // ou seja, o Spring vai automaticamente usar esse encoder sempre que precisar
+    // criptografar ou comparar senhas, devido a annotation @Bean
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+
+    }
 }
