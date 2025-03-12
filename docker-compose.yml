@@ -1,0 +1,15 @@
+# definindo containers
+services:
+  db: # nome do container
+    image: postgres:latest
+    ports:
+      - "5432:5432" # maquina:container
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=to_do_app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # persistir dados, pasta padrao
+
+volumes:
+  postgres_data:
