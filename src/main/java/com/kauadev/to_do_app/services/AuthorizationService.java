@@ -12,6 +12,8 @@ public class AuthorizationService {
     @Autowired
     private UserRepository userRepository;
 
+    // para permtir que o Spring Security busque internamente toda vez que uma
+    // AUTENTICAÇÃO for necessária.
     public UserDetails loadUserByUsername(String username) {
         return this.userRepository.findByUsername(username);
     }
