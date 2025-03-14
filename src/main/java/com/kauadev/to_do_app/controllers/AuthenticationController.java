@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kauadev.to_do_app.domain.user.User;
@@ -14,7 +15,8 @@ import com.kauadev.to_do_app.domain.user.UserDTO;
 import com.kauadev.to_do_app.infra.security.TokenService;
 import com.kauadev.to_do_app.repositories.UserRepository;
 
-@RestController("/auth")
+@RequestMapping("/auth")
+@RestController()
 public class AuthenticationController {
 
     @Autowired

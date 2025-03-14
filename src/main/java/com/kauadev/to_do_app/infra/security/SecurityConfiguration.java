@@ -41,9 +41,9 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "auth/register").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "user/delete").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/user/delete").hasRole("ADMIN")
                         .anyRequest().authenticated()) // todas rotas deve estar autenticado.
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class) // qual filtro, e antes do
                                                                                              // que ele irá ocorrer
