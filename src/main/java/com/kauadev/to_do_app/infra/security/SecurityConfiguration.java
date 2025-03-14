@@ -1,7 +1,9 @@
 package com.kauadev.to_do_app.infra.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 // aqui definimos a nossa configuração em como será o comportamento do spring security
 
@@ -20,6 +23,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration // define como classe de configuração
 @EnableWebSecurity // ativa config do security web
 public class SecurityConfiguration {
+
+    @Autowired
+    private SecurityFilter securityFilter;
 
     @Bean // -> spring consegue identificar e instanciar a classe
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -35,7 +41,12 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.POST, "auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "auth/register").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "user/delete").hasRole("ADMIN")
                         .anyRequest().authenticated()) // todas rotas deve estar autenticado.
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class) // qual filtro, e antes do
+                                                                                             // que ele irá ocorrer
                 .build(); // builda e retorna um SecurityFilterChain
     }
 
