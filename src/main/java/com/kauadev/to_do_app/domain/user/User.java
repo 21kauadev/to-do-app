@@ -35,6 +35,13 @@ public class User implements UserDetails {
     private String password;
     private UserRole role;
 
+    // tendo que implementar um construtor sem ter de passar o ID
+    public User(String username, String password, UserRole role) {
+        this.username = username;
+        this.password = password;
+        this.role = role;
+    }
+
     // checamos qual é a role atual do usuario pra
     // dar as devidas permissões / autoridades
     @Override

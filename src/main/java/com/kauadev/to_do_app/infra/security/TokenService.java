@@ -59,7 +59,6 @@ public class TokenService {
             System.out.println("Falha ao verificar/validar token: " + e.getMessage());
             return null;
         }
-
     }
 
     private Instant genExpirationInstant() {
