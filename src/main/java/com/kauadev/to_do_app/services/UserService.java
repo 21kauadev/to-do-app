@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.UserDTO;
+import com.kauadev.to_do_app.domain.user.exceptions.UserNotFoundException;
 import com.kauadev.to_do_app.repositories.UserRepository;
 
 @Service
@@ -23,11 +24,17 @@ public class UserService {
     public User getUser(Integer id) {
         Optional<User> user = this.userRepository.findById(id);
 
+        if (!user.isPresent())
+            throw new UserNotFoundException();
+
         return user.get();
     }
 
     public User updateUser(Integer id, UserDTO data) {
         Optional<User> user = this.userRepository.findById(id);
+
+        if (!user.isPresent())
+            throw new UserNotFoundException();
 
         user.get().setUsername(data.username());
 
@@ -42,6 +49,10 @@ public class UserService {
     }
 
     public String deleteUser(Integer id) {
+
+        if (id == null)
+            throw new UserNotFoundException();
+
         Optional<User> user = this.userRepository.findById(id);
 
         this.userRepository.delete(user.get());
