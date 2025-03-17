@@ -10,19 +10,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kauadev.to_do_app.domain.user.LoginDTO;
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.UserDTO;
 import com.kauadev.to_do_app.infra.security.TokenService;
 import com.kauadev.to_do_app.repositories.UserRepository;
 
 @RequestMapping("/auth")
-@RestController()
+@RestController
 public class AuthenticationController {
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -50,7 +51,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserDTO data) {
+    public ResponseEntity<String> login(@RequestBody LoginDTO data) {
 
         // usernamePassowrd e authenticationManager responsáveis pela autenticação:
 
@@ -63,19 +64,19 @@ public class AuthenticationController {
         // retornando uma instancia
         // do authenticaitonManager e do decodificador de senha (nesse caso,
         // BCryptPasswordEncoder)
+
         UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(data.username(),
                 data.password());
 
         // passa o objeto usernamePassword de argumento pro método authenticate, que só
         // confirma
+
         var authenticationManager = this.authenticationManager.authenticate(usernamePassword);
+
+        String token = this.tokenService.generateToken((User) authenticationManager.getPrincipal());
+        return ResponseEntity.ok().body(token);
 
         // authManager.getPrincipal() retornaria o objeto User, permitindo, assim, que o
         // token possa ser gerado com base nesse usuario autenticado.
-
-        String token = this.tokenService.generateToken((User) authenticationManager.getPrincipal());
-
-        return ResponseEntity.ok().body(token);
     }
-
 }

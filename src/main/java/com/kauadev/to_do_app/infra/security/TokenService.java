@@ -26,7 +26,7 @@ public class TokenService {
             // cria um algoritmo de assinatura usando minha cahve secret
             // ou seja, vai usar esse algoritmo para assinar e validar o token
             // uma camada a mais (essencial) de segurança
-            Algorithm algorithm = Algorithm.HMAC256(secret);
+            Algorithm algorithm = Algorithm.HMAC256(this.secret);
 
             // criação dele é simples, passamos algumas configzinhas a mais
             // pra deixar tudo certinho.
@@ -47,7 +47,7 @@ public class TokenService {
 
     public String validateTokenAndReturnSubject(String token) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
+            Algorithm algorithm = Algorithm.HMAC256(this.secret);
 
             return JWT.require(algorithm)
                     .withIssuer("to-do-api") // mesmo issuer

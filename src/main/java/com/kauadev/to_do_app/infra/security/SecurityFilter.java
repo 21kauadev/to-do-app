@@ -38,14 +38,19 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (token != null) {
 
             String usernameSubject = this.tokenService.validateTokenAndReturnSubject(token);
-            UserDetails userDetails = this.userRepository.findByUsername(usernameSubject);
+
+            System.out.println(usernameSubject);
+
+            UserDetails user = this.userRepository.findByUsername(usernameSubject);
+
+            System.out.println(user);
 
             // autenticação. o usuário ja foi autenticado pelo token
 
             // password como null pois já temos o token.
             // passamos os authorities pra definir o que o usuário pode fazer.
-            var authentication = new UsernamePasswordAuthenticationToken(usernameSubject, null,
-                    userDetails.getAuthorities());
+            var authentication = new UsernamePasswordAuthenticationToken(user, null,
+                    user.getAuthorities());
 
             // define no contexto da aplicação.
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -63,7 +68,8 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         // cabeçalhos com o token geralmente tem o prefixo Bearer
         // aqui só estamos retirando ele e deixando apenas o token.
-        String token = authHeader.replace("Bearer", " ");
+
+        String token = authHeader.replace("Bearer ", "");
 
         return token;
     }
