@@ -25,7 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfiguration {
 
     @Autowired
-    private SecurityFilter securityFilter;
+    private JwtAuthFilter jwtAuthFilter;
 
     @Bean // -> spring consegue identificar e instanciar a classe
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -45,8 +45,8 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/user/delete").hasRole("ADMIN")
                         .anyRequest().authenticated()) // todas rotas deve estar autenticado.
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class) // qual filtro, e antes do
-                                                                                             // que ele irá ocorrer
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // qual filtro, e antes do
+                                                                                            // que ele irá ocorrer
                 .build(); // builda e retorna um SecurityFilterChain
     }
 
