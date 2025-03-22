@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kauadev.to_do_app.domain.task.Task;
+import com.kauadev.to_do_app.domain.task.TaskDTO;
 import com.kauadev.to_do_app.repositories.TaskRepository;
 
 @Service
@@ -25,16 +26,18 @@ public class TaskService {
         return task.get();
     }
 
-    public Task createTask(Task newTask) {
-        return this.taskRepository.save(newTask);
+    public Task createTask(TaskDTO data) {
+        Task task = new Task(data.title(), data.description(), data.due_date(), data.status());
+
+        return this.taskRepository.save(task);
     }
 
-    public Task updateTask(String id, Task newTask) {
+    public Task updateTask(String id, TaskDTO data) {
         Optional<Task> task = this.taskRepository.findById(id);
 
-        task.get().setTitle(newTask.getTitle());
-        task.get().setDescription(newTask.getDescription());
-        task.get().setTask_status(newTask.getTask_status());
+        task.get().setTitle(data.title());
+        task.get().setDescription(data.description());
+        task.get().setTask_status(data.status());
 
         return this.taskRepository.save(task.get());
     }

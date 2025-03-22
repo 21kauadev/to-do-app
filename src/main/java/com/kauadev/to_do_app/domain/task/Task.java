@@ -36,4 +36,11 @@ public class Task {
     @JoinColumn(name = "user_id")
     private User user;
 
+    public Task(String title, String description, LocalDate due_date, TaskStatus taskStatus) {
+        this.title = title;
+        this.description = description;
+        this.due_date = due_date;
+        this.task_status = taskStatus;
+    }
+
 }
