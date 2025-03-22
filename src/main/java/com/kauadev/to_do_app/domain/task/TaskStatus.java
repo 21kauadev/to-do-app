@@ -5,13 +5,13 @@ public enum TaskStatus {
     PENDING("pending"),
     COMPLETED("completed");
 
-    public String role;
+    public String status;
 
-    TaskStatus(String role) {
-        this.role = role;
+    TaskStatus(String status) {
+        this.status = status;
     }
 
-    public String getRole() {
-        return role;
+    public String getStatus() {
+        return status;
     }
 }
