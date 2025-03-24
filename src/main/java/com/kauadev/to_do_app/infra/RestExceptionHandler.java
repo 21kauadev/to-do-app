@@ -42,4 +42,12 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(threatedError);
     }
 
+    // tratamento de erros mais generalista.
+    // pra pegar possiveis erros mais gerais que possam escapar
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<RestErrorMessage> generalExceptionHandler(Exception exception) {
+        RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(threatedError);
+    }
 }

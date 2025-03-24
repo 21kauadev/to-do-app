@@ -44,7 +44,6 @@ public class TokenService {
                 .build() // builda
                 .verify(token) // verifica o token
                 .getSubject(); // retorna o subject com base no token
-
     }
 
     private Instant genExpirationInstant() {

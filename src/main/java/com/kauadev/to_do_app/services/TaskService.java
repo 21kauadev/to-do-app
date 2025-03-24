@@ -1,5 +1,7 @@
 package com.kauadev.to_do_app.services;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +18,8 @@ public class TaskService {
     @Autowired
     private TaskRepository taskRepository;
 
+    private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+
     public List<Task> getAllTasks() {
         return this.taskRepository.findAll();
     }
@@ -27,7 +31,14 @@ public class TaskService {
     }
 
     public Task createTask(TaskDTO data) {
-        Task task = new Task(data.title(), data.description(), data.due_date(), data.status());
+        System.out.println("due date: " + data.due_date());
+
+        LocalDate dueDate = LocalDate.parse(data.due_date());
+        String stringFormattedDueDate = fmt.format(dueDate);
+
+        dueDate = LocalDate.parse(stringFormattedDueDate);
+
+        Task task = new Task(data.title(), data.description(), dueDate, data.status());
 
         return this.taskRepository.save(task);
     }
