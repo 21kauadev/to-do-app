@@ -20,7 +20,7 @@ import lombok.Setter;
 @Table(name = "tasks")
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
+@Getter // talvez tirar o get do user. personalizar o retorno.
 @Setter
 public class Task {
 
@@ -33,16 +33,19 @@ public class Task {
     private LocalDate due_date;
     private TaskStatus task_status;
 
-    // relação de um-um. task precisa do id do usuario que a criou
+    // relação de muitos-um (user pode ter varias tarefas). task precisa do id do
+    // usuario que a criou
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Task(String title, String description, LocalDate due_date, TaskStatus taskStatus) {
+    public Task(String title, String description, LocalDate due_date, TaskStatus taskStatus, User user) {
         this.title = title;
         this.description = description;
         this.due_date = due_date;
         this.task_status = taskStatus;
+        this.user = user;
     }
 
 }

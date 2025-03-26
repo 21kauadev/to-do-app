@@ -10,15 +10,19 @@ import org.springframework.stereotype.Service;
 
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
+import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.repositories.TaskRepository;
+import com.kauadev.to_do_app.repositories.UserRepository;
 
 @Service
 public class TaskService {
 
     @Autowired
     private TaskRepository taskRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-    private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public List<Task> getAllTasks() {
         return this.taskRepository.findAll();
@@ -31,14 +35,13 @@ public class TaskService {
     }
 
     public Task createTask(TaskDTO data) {
+        Optional<User> user = this.userRepository.findById(data.user_id());
+
         System.out.println("due date: " + data.due_date());
 
-        LocalDate dueDate = LocalDate.parse(data.due_date());
-        String stringFormattedDueDate = fmt.format(dueDate);
+        LocalDate dueDate = LocalDate.parse(data.due_date(), fmt);
 
-        dueDate = LocalDate.parse(stringFormattedDueDate);
-
-        Task task = new Task(data.title(), data.description(), dueDate, data.status());
+        Task task = new Task(data.title(), data.description(), dueDate, data.status(), user.get());
 
         return this.taskRepository.save(task);
     }

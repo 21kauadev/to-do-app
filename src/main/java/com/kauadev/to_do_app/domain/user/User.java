@@ -7,16 +7,17 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.kauadev.to_do_app.domain.task.Task;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 // o postgres tem uma plaavra reservada user
 // por isso, mapeamos o nome para "users"
@@ -24,8 +25,6 @@ import lombok.Setter;
 @Entity(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
 public class User implements UserDetails {
 
     @Id
@@ -44,6 +43,9 @@ public class User implements UserDetails {
         this.role = role;
     }
 
+    @OneToMany(mappedBy = "user")
+    private List<Task> tasks;
+
     // checamos qual é a role atual do usuario pra
     // dar as devidas permissões / autoridades
     @Override
@@ -54,9 +56,20 @@ public class User implements UserDetails {
             return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
+    public Integer getId() {
+        return id;
+    }
+
     @Override
     public String getUsername() {
         return this.username;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
 }
