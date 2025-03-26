@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
 import com.kauadev.to_do_app.domain.user.User;
+import com.kauadev.to_do_app.domain.user.exceptions.UserNotFoundException;
 import com.kauadev.to_do_app.repositories.TaskRepository;
 import com.kauadev.to_do_app.repositories.UserRepository;
 
@@ -36,6 +37,9 @@ public class TaskService {
 
     public Task createTask(TaskDTO data) {
         Optional<User> user = this.userRepository.findById(data.user_id());
+
+        if (!user.isPresent())
+            throw new UserNotFoundException();
 
         System.out.println("due date: " + data.due_date());
 
