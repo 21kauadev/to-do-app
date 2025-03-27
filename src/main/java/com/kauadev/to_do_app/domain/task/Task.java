@@ -2,6 +2,9 @@ package com.kauadev.to_do_app.domain.task;
 
 import java.time.LocalDate;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.kauadev.to_do_app.domain.user.User;
 
 import jakarta.persistence.Entity;
@@ -37,7 +40,8 @@ public class Task {
     // usuario que a criou
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE) // deletar em cascata.
     private User user;
 
     public Task(String title, String description, LocalDate due_date, TaskStatus taskStatus, User user) {
@@ -47,5 +51,4 @@ public class Task {
         this.task_status = taskStatus;
         this.user = user;
     }
-
 }

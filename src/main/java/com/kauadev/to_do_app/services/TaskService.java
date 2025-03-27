@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
 import com.kauadev.to_do_app.domain.user.User;
-import com.kauadev.to_do_app.domain.user.exceptions.UserNotFoundException;
 import com.kauadev.to_do_app.repositories.TaskRepository;
-import com.kauadev.to_do_app.repositories.UserRepository;
 
 @Service
 public class TaskService {
@@ -21,7 +20,7 @@ public class TaskService {
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -35,17 +34,21 @@ public class TaskService {
         return task.get();
     }
 
+    // getUserTasks
+
     public Task createTask(TaskDTO data) {
-        Optional<User> user = this.userRepository.findById(data.user_id());
 
-        if (!user.isPresent())
-            throw new UserNotFoundException();
-
-        System.out.println("due date: " + data.due_date());
+        // pega o usuario autenticado e extrai o id
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
 
         LocalDate dueDate = LocalDate.parse(data.due_date(), fmt);
 
-        Task task = new Task(data.title(), data.description(), dueDate, data.status(), user.get());
+        // se o id ta diferente do id que ta no token, erro de autenticação!
+
+        // aqui, o user passado é o user que é extraido com base no contexto de
+        // autenticação do spring security.
+        Task task = new Task(data.title(), data.description(), dueDate, data.status(), user);
 
         return this.taskRepository.save(task);
     }
