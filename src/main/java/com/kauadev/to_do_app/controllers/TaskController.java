@@ -31,6 +31,13 @@ public class TaskController {
         return ResponseEntity.ok().body(tasks);
     }
 
+    @GetMapping("/userTasks")
+    public ResponseEntity<List<Task>> getUserTasks() {
+        List<Task> userTasks = this.taskService.getUserTasks();
+
+        return ResponseEntity.ok().body(userTasks);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTask(@PathVariable("id") String id) {
         Task task = this.taskService.getTask(id);

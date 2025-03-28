@@ -43,7 +43,16 @@ public class TaskService {
         return task.get();
     }
 
-    // getUserTasks
+    public List<Task> getUserTasks() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+
+        List<Task> tasks = this.taskRepository.findAll();
+        // filtra os usuarios que tem o id igual ao campo user_id na task.
+        List<Task> userTasks = tasks.stream().filter((task) -> task.getUser().getId() == user.getId()).toList();
+
+        return userTasks;
+    }
 
     public Task createTask(TaskDTO data) {
 
