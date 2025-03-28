@@ -10,6 +10,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.kauadev.to_do_app.domain.user.exceptions.ADMCanNotCreateTaskException;
+import com.kauadev.to_do_app.domain.user.exceptions.UserCanNotSeeOtherUsersTasks;
 import com.kauadev.to_do_app.domain.user.exceptions.UserNotFoundException;
 
 @ControllerAdvice
@@ -24,6 +25,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ADMCanNotCreateTaskException.class)
     private ResponseEntity<RestErrorMessage> admCanNotCreateTaskHandler(ADMCanNotCreateTaskException exception) {
+        RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.METHOD_NOT_ALLOWED);
+
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(threatedError);
+    }
+
+    @ExceptionHandler(UserCanNotSeeOtherUsersTasks.class)
+    private ResponseEntity<RestErrorMessage> userCanNotSeeOtherUsersTasksHandler(
+            UserCanNotSeeOtherUsersTasks exception) {
         RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.METHOD_NOT_ALLOWED);
 
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(threatedError);

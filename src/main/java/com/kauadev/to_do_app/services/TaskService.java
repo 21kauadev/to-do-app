@@ -14,6 +14,7 @@ import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.exceptions.ADMCanNotCreateTaskException;
+import com.kauadev.to_do_app.domain.user.exceptions.UserCanNotSeeOtherUsersTasks;
 import com.kauadev.to_do_app.repositories.TaskRepository;
 
 @Service
@@ -25,6 +26,14 @@ public class TaskService {
     private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public List<Task> getAllTasks() {
+
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+
+        if (!user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            throw new UserCanNotSeeOtherUsersTasks();
+        }
+
         return this.taskRepository.findAll();
     }
 
