@@ -10,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.kauadev.to_do_app.domain.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
 import com.kauadev.to_do_app.domain.user.User;
@@ -78,6 +79,9 @@ public class TaskService {
     public Task updateTask(String id, TaskDTO data) {
         Optional<Task> task = this.taskRepository.findById(id);
 
+        if (!task.isPresent())
+            throw new TaskNotFoundException();
+
         task.get().setTitle(data.title());
         task.get().setDescription(data.description());
         task.get().setTask_status(data.status());
@@ -87,6 +91,9 @@ public class TaskService {
 
     public String deleteTask(String id) {
         Optional<Task> task = this.taskRepository.findById(id);
+
+        if (!task.isPresent())
+            throw new TaskNotFoundException();
 
         this.taskRepository.delete(task.get());
 

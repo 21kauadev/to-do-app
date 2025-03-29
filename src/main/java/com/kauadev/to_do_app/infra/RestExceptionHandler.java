@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.kauadev.to_do_app.domain.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.user.exceptions.ADMCanNotCreateTaskException;
 import com.kauadev.to_do_app.domain.user.exceptions.UserCanNotSeeOtherUsersTasks;
 import com.kauadev.to_do_app.domain.user.exceptions.UserNotFoundException;
@@ -18,6 +19,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     private ResponseEntity<RestErrorMessage> userNotFoundHandler(UserNotFoundException exception) {
+        RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.NOT_FOUND);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(threatedError);
+    }
+
+    @ExceptionHandler(TaskNotFoundException.class)
+    private ResponseEntity<RestErrorMessage> taskNotFoundHandler(TaskNotFoundException exception) {
         RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.NOT_FOUND);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(threatedError);
