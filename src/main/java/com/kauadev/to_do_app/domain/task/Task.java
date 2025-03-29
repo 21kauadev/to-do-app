@@ -23,7 +23,7 @@ import lombok.Setter;
 @Table(name = "tasks")
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter // talvez tirar o get do user. personalizar o retorno.
+@Getter
 @Setter
 public class Task {
 
@@ -51,4 +51,5 @@ public class Task {
         this.task_status = taskStatus;
         this.user = user;
     }
+
 }

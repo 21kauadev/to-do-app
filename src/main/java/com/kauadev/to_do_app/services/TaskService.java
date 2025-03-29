@@ -14,6 +14,7 @@ import com.kauadev.to_do_app.domain.exceptions.OtherUserTasksCantBeDeletedExcept
 import com.kauadev.to_do_app.domain.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
+import com.kauadev.to_do_app.domain.task.TaskStatus;
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.exceptions.ADMCanNotCreateTaskException;
 import com.kauadev.to_do_app.domain.user.exceptions.UserCanNotSeeOtherUsersTasks;
@@ -78,14 +79,33 @@ public class TaskService {
     }
 
     public Task updateTask(String id, TaskDTO data) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+
         Optional<Task> task = this.taskRepository.findById(id);
 
         if (!task.isPresent())
             throw new TaskNotFoundException();
 
+        if (!user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                && task.get().getUser().getId() != user.getId()) {
+            throw new OtherUserTasksCantBeDeletedException();
+        }
+
         task.get().setTitle(data.title());
         task.get().setDescription(data.description());
         task.get().setTask_status(data.status());
+
+        return this.taskRepository.save(task.get());
+    }
+
+    public Task setTaskAsCompleted(String id) {
+        Optional<Task> task = this.taskRepository.findById(id);
+
+        if (!task.isPresent())
+            throw new TaskNotFoundException();
+
+        task.get().setTask_status(TaskStatus.valueOf("COMPLETED"));
 
         return this.taskRepository.save(task.get());
     }
@@ -96,15 +116,15 @@ public class TaskService {
 
         Optional<Task> task = this.taskRepository.findById(id);
 
+        if (!task.isPresent())
+            throw new TaskNotFoundException();
+
         // se o usuário não for um ADM e mesmo assim tentar deletar uma tarefa que não é
         // DELE, lança um erro
         if (!user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
                 && task.get().getUser().getId() != user.getId()) {
             throw new OtherUserTasksCantBeDeletedException();
         }
-
-        if (!task.isPresent())
-            throw new TaskNotFoundException();
 
         this.taskRepository.delete(task.get());
 
