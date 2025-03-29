@@ -10,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.kauadev.to_do_app.domain.exceptions.OtherUserTasksCantBeDeletedException;
 import com.kauadev.to_do_app.domain.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
@@ -90,7 +91,17 @@ public class TaskService {
     }
 
     public String deleteTask(String id) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+
         Optional<Task> task = this.taskRepository.findById(id);
+
+        // se o usuário não for um ADM e mesmo assim tentar deletar uma tarefa que não é
+        // DELE, lança um erro
+        if (!user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                && task.get().getUser().getId() != user.getId()) {
+            throw new OtherUserTasksCantBeDeletedException();
+        }
 
         if (!task.isPresent())
             throw new TaskNotFoundException();
