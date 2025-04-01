@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.kauadev.to_do_app.domain.task.Task;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,6 +36,8 @@ public class User implements UserDetails {
 
     private String username;
     private String password;
+
+    @Enumerated(EnumType.STRING)
     private UserRole role;
 
     @OneToMany
