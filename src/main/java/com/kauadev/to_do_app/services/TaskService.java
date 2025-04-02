@@ -75,7 +75,7 @@ public class TaskService {
         // autenticação do spring security.
         Task task = new Task(data.title(), data.description(), dueDate, data.status(), user);
 
-        return task;
+        return this.taskRepository.save(task);
     }
 
     public Task updateTask(String id, TaskDTO data) {
