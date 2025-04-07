@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.kauadev.to_do_app.domain.user.User;
@@ -16,6 +18,8 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
         List<User> users = this.userRepository.findAll();
@@ -32,18 +36,18 @@ public class UserService {
         return user.get();
     }
 
-    public User updateUser(Integer id, UserDTO data) {
-        Optional<User> user = this.userRepository.findById(id);
+    public User updateUser(UserDTO data) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        User loggedUser = (User) auth.getPrincipal();
+
+        Optional<User> user = this.userRepository.findById(loggedUser.getId());
 
         if (!user.isPresent())
             throw new UserNotFoundException();
 
+        String encodedPassword = this.passwordEncoder.encode(data.password());
         user.get().setUsername(data.username());
-
-        // temporario. ainda n tá sendo feito o hash.
-        user.get().setPassword(data.password());
-
-        user.get().setRole(data.role());
+        user.get().setPassword(encodedPassword);
 
         this.userRepository.save(user.get());
 

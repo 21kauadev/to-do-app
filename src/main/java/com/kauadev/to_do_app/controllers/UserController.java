@@ -38,8 +38,8 @@ public class UserController {
     }
 
     @PutMapping
-    public ResponseEntity<User> updateUser(@PathVariable("id") Integer id, @RequestBody UserDTO data) {
-        User user = this.userService.updateUser(id, data);
+    public ResponseEntity<User> updateUser(@RequestBody UserDTO data) {
+        User user = this.userService.updateUser(data);
 
         return ResponseEntity.ok().body(user);
     }
