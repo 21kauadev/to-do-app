@@ -1,8 +1,10 @@
 package com.kauadev.to_do_app.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
@@ -12,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.UserRole;
@@ -54,6 +55,33 @@ public class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Should get all users succesfully when everything is OK")
+    void getAllUsersCase1() throws Exception {
+        // supondo que esses são os usuários que tem cadastrados
+        User user1 = new User(1, "kaua", "123456789", UserRole.USER, null);
+        User user2 = new User(2, "pedrin", "123456789", UserRole.USER, null);
+
+        // mockando o userRepository.
+        when(this.userRepository.findAll()).thenReturn(List.of(user1, user2));
+
+        List<User> result = this.userService.getAllUsers();
+
+        assertEquals(user1.getUsername(), result.get(0).getUsername());
+        assertEquals(user2.getUsername(), result.get(1).getUsername());
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    @DisplayName("Should return an empty array when the application have no users registered")
+    void getAllUsersCase2() throws Exception {
+        List<User> emptyUsersList = List.of();
+
+        when(this.userRepository.findAll()).thenReturn(emptyUsersList);
+
+        assertTrue(emptyUsersList.size() == 0);
+    }
+
+    @Test
     @DisplayName("Should get a user successfully when everything is OK")
     void getUserCase1() throws Exception {
         User foundUser = new User(1, "kaua", "123456789", UserRole.USER, null);
@@ -66,7 +94,7 @@ public class UserServiceTest {
 
         User result = this.userService.getUser(1);
 
-        assertEquals("kaua", result.getUsername());
+        assertEquals(foundUser.getUsername(), result.getUsername());
     }
 
     @Test
