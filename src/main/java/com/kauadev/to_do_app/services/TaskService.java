@@ -3,7 +3,6 @@ package com.kauadev.to_do_app.services;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -41,9 +40,9 @@ public class TaskService {
     }
 
     public Task getTask(String id) {
-        Optional<Task> task = this.taskRepository.findById(id);
+        Task task = this.taskRepository.findById(id).orElseThrow(TaskNotFoundException::new);
 
-        return task.get();
+        return task;
     }
 
     public List<Task> getUserTasks() {
@@ -82,51 +81,42 @@ public class TaskService {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
 
-        Optional<Task> task = this.taskRepository.findById(id);
-
-        if (!task.isPresent())
-            throw new TaskNotFoundException();
+        Task task = this.taskRepository.findById(id).orElseThrow(TaskNotFoundException::new);
 
         if (!user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                && task.get().getUser().getId() != user.getId()) {
+                && task.getUser().getId() != user.getId()) {
             throw new OtherUserTasksCantBeDeletedException();
         }
 
-        task.get().setTitle(data.title());
-        task.get().setDescription(data.description());
-        task.get().setTask_status(data.status());
+        task.setTitle(data.title());
+        task.setDescription(data.description());
+        task.setTask_status(data.status());
 
-        return this.taskRepository.save(task.get());
+        return this.taskRepository.save(task);
     }
 
     public Task setTaskAsCompleted(String id) {
-        Optional<Task> task = this.taskRepository.findById(id);
+        Task task = this.taskRepository.findById(id).orElseThrow(TaskNotFoundException::new);
 
-        if (!task.isPresent())
-            throw new TaskNotFoundException();
+        task.setTask_status(TaskStatus.valueOf("COMPLETED"));
 
-        task.get().setTask_status(TaskStatus.valueOf("COMPLETED"));
-
-        return this.taskRepository.save(task.get());
+        return this.taskRepository.save(task);
     }
 
     public String deleteTask(String id) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
 
-        Optional<Task> task = this.taskRepository.findById(id);
-
-        if (!task.isPresent())
-            throw new TaskNotFoundException();
+        Task task = this.taskRepository.findById(id).orElseThrow(TaskNotFoundException::new);
 
         // se o usuário não for um ADM e mesmo assim tentar deletar uma tarefa que não é
         // DELE, lança um erro
         if (!user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                && task.get().getUser().getId() != user.getId()) {
+                && task.getUser().getId() != user.getId()) {
             throw new OtherUserTasksCantBeDeletedException();
         }
 
-        this.taskRepository.delete(task.get());
+        this.taskRepository.delete(task);
 
         return null;
     }
