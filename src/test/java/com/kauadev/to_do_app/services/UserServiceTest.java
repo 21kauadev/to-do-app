@@ -108,7 +108,7 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw Exception when user is not found")
+    @DisplayName("Should throw UserNotFoundException when user is not found")
     void getUserCase2() throws Exception {
         when(this.userRepository.findById(1)).thenReturn(Optional.empty());
 
@@ -155,4 +155,8 @@ public class UserServiceTest {
         verify(this.userRepository, times(1)).save(loggedUser);
     }
 
+    @Test
+    @DisplayName("Should throw UserNotFoundException when user to be updated is not found")
+    void updateUserCase2() {
+    }
 }
