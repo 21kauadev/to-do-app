@@ -2,6 +2,9 @@ package com.kauadev.to_do_app.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -14,8 +17,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.kauadev.to_do_app.domain.user.User;
+import com.kauadev.to_do_app.domain.user.UserDTO;
 import com.kauadev.to_do_app.domain.user.UserRole;
 import com.kauadev.to_do_app.domain.user.exceptions.UserNotFoundException;
 import com.kauadev.to_do_app.repositories.UserRepository;
@@ -35,6 +43,8 @@ public class UserServiceTest {
     // objeto falso
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     // injeta na classe REAL userService os MOCKS, no caso, o user repository
     // mockado. para testarmos os métodos de user service.
@@ -110,4 +120,39 @@ public class UserServiceTest {
 
         Assertions.assertEquals("Usuário não encontrado.", thrown.getMessage());
     }
+
+    @Test
+    @DisplayName("Should update a user successfully when everything is OK")
+    void updateUserCase1() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+
+        // mockando ambas classes usadas no processo de obter o objeto principal
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        // acessamos o securityContextHolder real, não mockado
+        SecurityContextHolder.setContext(securityContext); // substitui o contexto real por um mockado
+        when(authentication.getPrincipal()).thenReturn(loggedUser); // deve retornar o suposto usuário logado (objeto
+                                                                    // User)
+
+        when(this.userRepository.findById(1)).thenReturn(Optional.of(loggedUser));
+
+        // supondo que estou atualizando um usuário, enviando os dados do DTO
+        UserDTO newUser = new UserDTO("kauaUpdated", "123456789updated", UserRole.USER);
+
+        // já que o encoder geralmente retorna outra string
+        // só é preciso verificar se elas batem, ou seja, ser salvo com a nova senha.
+        when(this.passwordEncoder.encode(newUser.password())).thenReturn("hashed_password");
+
+        loggedUser.setUsername(newUser.username());
+        loggedUser.setPassword("hashed_password");
+
+        this.userService.updateUser(newUser);
+
+        // verificando se foi de fato chamado no user service
+        verify(this.userRepository, times(1)).save(loggedUser);
+    }
+
 }
