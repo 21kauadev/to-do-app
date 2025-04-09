@@ -167,4 +167,31 @@ public class UserServiceTest {
 
         Assertions.assertEquals("Usuário não encontrado.", thrown.getMessage());
     }
+
+    @Test
+    @DisplayName("Should delete a user succesfully when everything is OK")
+    void deleteUserCase1() {
+        User userToBeDeleted = new User(1, "kaua", "123456789", UserRole.USER, null);
+
+        when(this.userRepository.findById(1)).thenReturn(Optional.of(userToBeDeleted));
+
+        // deletando, de fato, o usuário ficticio
+        this.userService.deleteUser(1);
+
+        verify(this.userRepository, times(1)).delete(userToBeDeleted);
+    }
+
+    @Test
+    @DisplayName("Should throw UserNotFoundException when user to be deleted is not found")
+    void deleteUserCase2() {
+
+        when(this.userRepository.findById(1)).thenReturn(Optional.empty());
+
+        Exception thrown = Assertions.assertThrows(UserNotFoundException.class, () -> {
+            this.userService.getUser(1);
+        });
+
+        Assertions.assertEquals("Usuário não encontrado.", thrown.getMessage());
+    }
+
 }
