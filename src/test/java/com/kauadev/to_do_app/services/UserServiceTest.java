@@ -193,5 +193,4 @@ public class UserServiceTest {
 
         Assertions.assertEquals("Usuário não encontrado.", thrown.getMessage());
     }
-
 }
