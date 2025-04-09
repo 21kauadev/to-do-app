@@ -158,5 +158,13 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should throw UserNotFoundException when user to be updated is not found")
     void updateUserCase2() {
+
+        when(this.userRepository.findById(1)).thenReturn(Optional.empty());
+
+        Exception thrown = Assertions.assertThrows(UserNotFoundException.class, () -> {
+            this.userService.getUser(1);
+        });
+
+        Assertions.assertEquals("Usuário não encontrado.", thrown.getMessage());
     }
 }
