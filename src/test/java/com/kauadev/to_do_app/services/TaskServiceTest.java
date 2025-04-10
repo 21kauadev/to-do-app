@@ -120,4 +120,66 @@ public class TaskServiceTest {
 
         assertEquals("Tarefa não encontrada.", thrown.getMessage());
     }
+
+    @Test
+    @DisplayName("Should get all users tasks succesfully when everything is OK")
+    void getUserTasksCase1() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+        User anotherUser = new User(2, "kaua2", "123456789", UserRole.USER, null);
+
+        Task userTask1 = new Task(UUID.randomUUID(), "User id1 Tarefa de teste", "description", LocalDate.now(),
+                TaskStatus.PENDING,
+                loggedUser);
+        Task userTask2 = new Task(UUID.randomUUID(), "User id1 - Tarefa de teste2", "description", LocalDate.now(),
+                TaskStatus.PENDING,
+                loggedUser);
+        Task task3 = new Task(UUID.randomUUID(), "Tarefa de teste3", "description", LocalDate.now(),
+                TaskStatus.PENDING,
+                anotherUser);
+
+        List<Task> tasks = List.of(userTask1, userTask2, task3);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+        SecurityContextHolder.setContext(securityContext); // setando o context falso pro teste
+
+        when(this.taskRepository.findAll()).thenReturn(tasks);
+
+        // não é preciso testar a variável interna ao método (userTasks)
+        // em testes unitários, sempre é testado a saída ao método e os efeitos
+        // colaterais.
+
+        // ou seja, não importa COMO é feito, mas sim que FAÇA o que é esperado, que
+        // nesse caso, é retornar o userTasks
+
+        List<Task> result = this.taskService.getUserTasks();
+
+        // valida o retorno, certificando de que é o mesmo
+        assertEquals(userTask1.getUser().getId(), result.get(0).getUser().getId());
+        assertEquals(userTask2.getUser().getId(), result.get(1).getUser().getId());
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    @DisplayName("Should return an empty array if user dont have tasks")
+    void getUserTasksCase2() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+        List<Task> emptyUserTasks = List.of();
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(this.taskRepository.findAll()).thenReturn(emptyUserTasks);
+
+        List<Task> result = this.taskService.getUserTasks();
+
+        assertEquals(result.size(), emptyUserTasks.size());
+    }
 }
