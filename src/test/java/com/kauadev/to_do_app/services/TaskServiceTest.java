@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -19,12 +20,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.kauadev.to_do_app.domain.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskStatus;
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.UserRole;
 import com.kauadev.to_do_app.domain.user.exceptions.UserCanNotSeeOtherUsersTasks;
 import com.kauadev.to_do_app.repositories.TaskRepository;
+
+// relembrando:
+// case1 == sucess 
+// case2 == fail
 
 public class TaskServiceTest {
 
@@ -84,5 +90,34 @@ public class TaskServiceTest {
         });
 
         assertEquals("Usuário comum não pode ver as tarefas de todos os usuários.", thrown.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should get a task succesfully when everything is OK")
+    void getTaskCase1() {
+        UUID uuid = UUID.randomUUID();
+
+        Task task = new Task(uuid, "Tarefa de teste", "description", LocalDate.now(), TaskStatus.PENDING,
+                null);
+
+        when(this.taskRepository.findById(uuid.toString())).thenReturn(Optional.of(task));
+
+        Task result = this.taskService.getTask(task.getId().toString());
+
+        assertEquals(task.getTitle(), result.getTitle());
+    }
+
+    @Test
+    @DisplayName("Should throw TaskNotFoundException when task is not found")
+    void getTaskCase2() {
+
+        // optional vazio, sem objeto task encontrado
+        when(this.taskRepository.findById(UUID.randomUUID().toString())).thenReturn(Optional.empty());
+
+        TaskNotFoundException thrown = Assertions.assertThrows(TaskNotFoundException.class, () -> {
+            this.taskService.getTask(UUID.randomUUID().toString());
+        });
+
+        assertEquals("Tarefa não encontrada.", thrown.getMessage());
     }
 }
