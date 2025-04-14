@@ -1,10 +1,15 @@
 package com.kauadev.to_do_app.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,9 +27,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.kauadev.to_do_app.domain.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.task.Task;
+import com.kauadev.to_do_app.domain.task.TaskDTO;
 import com.kauadev.to_do_app.domain.task.TaskStatus;
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.UserRole;
+import com.kauadev.to_do_app.domain.user.exceptions.ADMCanNotCreateTaskException;
 import com.kauadev.to_do_app.domain.user.exceptions.UserCanNotSeeOtherUsersTasks;
 import com.kauadev.to_do_app.repositories.TaskRepository;
 
@@ -39,6 +46,8 @@ public class TaskServiceTest {
 
     @InjectMocks
     private TaskService taskService;
+
+    private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @BeforeEach
     void setup() {
@@ -181,5 +190,63 @@ public class TaskServiceTest {
         List<Task> result = this.taskService.getUserTasks();
 
         assertEquals(result.size(), emptyUserTasks.size());
+    }
+
+    @Test
+    @DisplayName("Should create a task when everything is OK")
+    void createTaskCase1() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        SecurityContextHolder.setContext(securityContext);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+
+        TaskDTO taskDTO = new TaskDTO("test", "test_desc", "25/04/2025", TaskStatus.PENDING);
+        LocalDate dueDate = LocalDate.parse(taskDTO.due_date(), fmt);
+
+        String uuid = "79846516-b43f-49d8-8316-d42aa7656be6";
+
+        Task task = new Task(UUID.fromString(uuid), taskDTO.title(), taskDTO.description(), dueDate, taskDTO.status(),
+                loggedUser);
+
+        // sem isso, o retorno de createTask fica nulo, pois não dizemos o que deve ser
+        // o retorno esperado
+        // e como é um mock, ele não tem LÓGICA implementada. sendo assim, é
+        // imprescindível indicar o que deve ser retornado, como o comportamneto será e
+        // etc.
+        when(this.taskRepository.save(any(Task.class))).thenReturn(task);
+
+        this.taskService.createTask(taskDTO);
+
+        // verificamos se foi chamado
+        // não precisa ser IGUALDADE COMPLETA, basta que o objeto salvo
+        // seja uma instância de task (assim como foi checado no mock)
+        verify(this.taskRepository, times(1)).save(any(Task.class));
+    }
+
+    @Test
+    @DisplayName("Should throw ADMCanNotCreateTaskException when ADM try to create task")
+    void createTaskCase2() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.ADMIN, null);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        TaskDTO taskDTO = new TaskDTO("test", "test_desc", "25/04/2025", TaskStatus.PENDING);
+
+        ADMCanNotCreateTaskException thrown = Assertions.assertThrows(ADMCanNotCreateTaskException.class, () -> {
+            this.taskService.createTask(taskDTO);
+        });
+
+        assertEquals("ADMs não podem criar tarefas.", thrown.getMessage());
     }
 }
