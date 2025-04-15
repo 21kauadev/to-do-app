@@ -339,4 +339,32 @@ public class TaskServiceTest {
 
         assertEquals("Tarefas de outros usuários não podem ser atualizadas.", thrown.getMessage());
     }
+
+    @Test
+    @DisplayName("Should set a task as completed when everything is OK")
+    void setTaskAsCompletedCase1() {
+        User user = new User(1, "kaua", "123456789", UserRole.USER, null);
+
+        String uuid = "79846516-b43f-49d8-8316-d42aa7656be6";
+        Task taskToBeCompleted = new Task(UUID.fromString(uuid), "title", "desc", LocalDate.now(), TaskStatus.PENDING,
+                user);
+
+        when(this.taskRepository.findById(uuid)).thenReturn(Optional.of(taskToBeCompleted));
+
+        taskToBeCompleted.setTask_status(TaskStatus.valueOf("COMPLETED"));
+        this.taskService.setTaskAsCompleted(uuid);
+
+        // verifica se o método save do repository foi chamado de fato
+        verify(this.taskRepository, times(1)).save(taskToBeCompleted);
+    }
+
+    @Test
+    @DisplayName("Should throw TaskNotFoundException when task to be completed is not found")
+    void setTaskAsCompletedCase2() {
+        TaskNotFoundException thrown = Assertions.assertThrows(TaskNotFoundException.class, () -> {
+            this.taskService.setTaskAsCompleted("id_that_doesnt_exist");
+        });
+
+        assertEquals("Tarefa não encontrada.", thrown.getMessage());
+    }
 }
