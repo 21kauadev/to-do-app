@@ -1,7 +1,6 @@
 package com.kauadev.to_do_app.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -25,10 +24,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.kauadev.to_do_app.domain.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
 import com.kauadev.to_do_app.domain.task.TaskStatus;
+import com.kauadev.to_do_app.domain.task.exceptions.OtherUserTasksCantBeUpdatedException;
+import com.kauadev.to_do_app.domain.task.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.UserRole;
 import com.kauadev.to_do_app.domain.user.exceptions.ADMCanNotCreateTaskException;
@@ -223,21 +223,23 @@ public class TaskServiceTest {
         this.taskService.createTask(taskDTO);
 
         // verificamos se foi chamado
-        // não precisa ser IGUALDADE COMPLETA, basta que o objeto salvo
-        // seja uma instância de task (assim como foi checado no mock)
+        // na hora do create, não precisa ser IGUALDADE COMPLETA, basta que o objeto
+        // salvo seja uma instância de task (assim como foi checado no mock)
+
+        // pois a geração do id é sempre automatica, assim, o id sempre será diferente
         verify(this.taskRepository, times(1)).save(any(Task.class));
     }
 
     @Test
     @DisplayName("Should throw ADMCanNotCreateTaskException when ADM try to create task")
     void createTaskCase2() {
-        User loggedUser = new User(1, "kaua", "123456789", UserRole.ADMIN, null);
+        User loggedUserADM = new User(1, "kaua", "123456789", UserRole.ADMIN, null);
 
         Authentication authentication = mock(Authentication.class);
         SecurityContext securityContext = mock(SecurityContext.class);
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(loggedUser);
+        when(authentication.getPrincipal()).thenReturn(loggedUserADM);
 
         SecurityContextHolder.setContext(securityContext);
 
@@ -248,5 +250,93 @@ public class TaskServiceTest {
         });
 
         assertEquals("ADMs não podem criar tarefas.", thrown.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should update a task when everything is OK")
+    void updateTaskCase1() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        TaskDTO taskDTO = new TaskDTO("test", "test_desc", "25/04/2025", TaskStatus.PENDING);
+        LocalDate dueDate = LocalDate.parse(taskDTO.due_date(), fmt);
+
+        String uuid = "79846516-b43f-49d8-8316-d42aa7656be6";
+
+        Task task = new Task(UUID.fromString(uuid), taskDTO.title(), taskDTO.description(), dueDate, taskDTO.status(),
+                loggedUser);
+
+        // indicando que deve ser retornado a task acima.
+        when(this.taskRepository.findById(uuid)).thenReturn(Optional.of(task));
+
+        TaskDTO updatedData = new TaskDTO("task_updated", "updated_desc", "25/04/2025", TaskStatus.COMPLETED);
+
+        task.setTitle(updatedData.title());
+        task.setDescription(updatedData.description());
+        task.setTask_status(updatedData.status());
+
+        this.taskService.updateTask(uuid, updatedData);
+
+        // aqui, a igualdade completa importa. o id já foi gerado e já eixste
+        verify(this.taskRepository, times(1)).save(task);
+    }
+
+    @Test
+    @DisplayName("Should throw TaskNotFoundException when task is not found")
+    void updateTaskCase2() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        TaskDTO updatedData = new TaskDTO("task_updated", "updated_desc", "25/04/2025", TaskStatus.COMPLETED);
+
+        TaskNotFoundException thrown = Assertions.assertThrows(TaskNotFoundException.class, () -> {
+            this.taskService.updateTask(null, updatedData);
+        });
+
+        assertEquals("Tarefa não encontrada.", thrown.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw OtherUsersTasksCantBeUpdated when task to be updated is not a user task")
+    void updateTaskCase3() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+        User anotherUser = new User(2, "kaua_2", "another_password", UserRole.USER, null);
+
+        String uuid = "79846516-b43f-49d8-8316-d42aa7656be6";
+        Task anotherUserTask = new Task(UUID.fromString(uuid), "title", "desc", LocalDate.now(), TaskStatus.COMPLETED,
+                anotherUser);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        when(this.taskRepository.findById(uuid)).thenReturn(Optional.of(anotherUserTask));
+
+        TaskDTO taskDTO = new TaskDTO("fake_dto", "fake_desc", "", TaskStatus.PENDING);
+
+        OtherUserTasksCantBeUpdatedException thrown = Assertions
+                .assertThrows(OtherUserTasksCantBeUpdatedException.class, () -> {
+                    this.taskService.updateTask(uuid, taskDTO);
+                });
+
+        assertEquals("Tarefas de outros usuários não podem ser atualizadas.", thrown.getMessage());
     }
 }

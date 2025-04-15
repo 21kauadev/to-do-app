@@ -9,11 +9,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.kauadev.to_do_app.domain.exceptions.OtherUserTasksCantBeDeletedException;
-import com.kauadev.to_do_app.domain.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
 import com.kauadev.to_do_app.domain.task.TaskStatus;
+import com.kauadev.to_do_app.domain.task.exceptions.OtherUserTasksCantBeDeletedException;
+import com.kauadev.to_do_app.domain.task.exceptions.OtherUserTasksCantBeUpdatedException;
+import com.kauadev.to_do_app.domain.task.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.exceptions.ADMCanNotCreateTaskException;
 import com.kauadev.to_do_app.domain.user.exceptions.UserCanNotSeeOtherUsersTasks;
@@ -85,7 +86,7 @@ public class TaskService {
 
         if (!user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
                 && task.getUser().getId() != user.getId()) {
-            throw new OtherUserTasksCantBeDeletedException();
+            throw new OtherUserTasksCantBeUpdatedException();
         }
 
         task.setTitle(data.title());

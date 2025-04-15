@@ -1,4 +1,4 @@
-package com.kauadev.to_do_app.domain.exceptions;
+package com.kauadev.to_do_app.domain.task.exceptions;
 
 public class TaskNotFoundException extends RuntimeException {
 

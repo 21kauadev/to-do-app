@@ -9,7 +9,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.kauadev.to_do_app.domain.exceptions.TaskNotFoundException;
+import com.kauadev.to_do_app.domain.task.exceptions.OtherUserTasksCantBeDeletedException;
+import com.kauadev.to_do_app.domain.task.exceptions.OtherUserTasksCantBeUpdatedException;
+import com.kauadev.to_do_app.domain.task.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.user.exceptions.ADMCanNotCreateTaskException;
 import com.kauadev.to_do_app.domain.user.exceptions.UserCanNotSeeOtherUsersTasks;
 import com.kauadev.to_do_app.domain.user.exceptions.UserNotFoundException;
@@ -41,6 +43,22 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(UserCanNotSeeOtherUsersTasks.class)
     private ResponseEntity<RestErrorMessage> userCanNotSeeOtherUsersTasksHandler(
             UserCanNotSeeOtherUsersTasks exception) {
+        RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.METHOD_NOT_ALLOWED);
+
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(threatedError);
+    }
+
+    @ExceptionHandler(OtherUserTasksCantBeUpdatedException.class)
+    private ResponseEntity<RestErrorMessage> otherUsersTasksCantBeUpdatedHandler(
+            OtherUserTasksCantBeUpdatedException exception) {
+        RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.METHOD_NOT_ALLOWED);
+
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(threatedError);
+    }
+
+    @ExceptionHandler(OtherUserTasksCantBeDeletedException.class)
+    private ResponseEntity<RestErrorMessage> otherUsersTasksCantBeDeletedHandler(
+            OtherUserTasksCantBeDeletedException exception) {
         RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.METHOD_NOT_ALLOWED);
 
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(threatedError);
