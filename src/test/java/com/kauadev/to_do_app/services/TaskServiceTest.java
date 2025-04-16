@@ -27,6 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.kauadev.to_do_app.domain.task.Task;
 import com.kauadev.to_do_app.domain.task.TaskDTO;
 import com.kauadev.to_do_app.domain.task.TaskStatus;
+import com.kauadev.to_do_app.domain.task.exceptions.OtherUserTasksCantBeDeletedException;
 import com.kauadev.to_do_app.domain.task.exceptions.OtherUserTasksCantBeUpdatedException;
 import com.kauadev.to_do_app.domain.task.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.user.User;
@@ -366,5 +367,78 @@ public class TaskServiceTest {
         });
 
         assertEquals("Tarefa não encontrada.", thrown.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should delete a task when everything is OK")
+    void deleteTaskCase1() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+
+        String uuid = "79846516-b43f-49d8-8316-d42aa7656be6";
+        Task task = new Task(UUID.fromString(uuid), "title", "desc", LocalDate.now(), TaskStatus.PENDING, loggedUser);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        when(this.taskRepository.findById(uuid)).thenReturn(Optional.of(task));
+
+        this.taskService.deleteTask(uuid);
+
+        // checando se foi chamado.
+        verify(this.taskRepository, times(1)).delete(task);
+    }
+
+    @Test
+    @DisplayName("Should throw TaskNotFoundException when task to be deleted is not found")
+    void deleteTaskCase2() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+        String uuid = "79846516-b43f-49d8-8316-d42aa7656be6";
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        TaskNotFoundException thrown = Assertions.assertThrows(TaskNotFoundException.class, () -> {
+            this.taskService.deleteTask(uuid);
+        });
+
+        assertEquals("Tarefa não encontrada.", thrown.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw OtherUserTasksCantBeDeleted when task to be deleted is not a user task")
+    void deleteTaskCase3() {
+        User loggedUser = new User(1, "kaua", "123456789", UserRole.USER, null);
+        User anotherUser = new User(2, "kaua_2", "xd", UserRole.USER, null);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedUser);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        String uuid = "79846516-b43f-49d8-8316-d42aa7656be6";
+        Task anotherUserTask = new Task(UUID.fromString(uuid), "another_task", "desc", LocalDate.now(),
+                TaskStatus.PENDING, anotherUser);
+
+        when(this.taskRepository.findById(uuid)).thenReturn(Optional.of(anotherUserTask));
+
+        OtherUserTasksCantBeDeletedException thrown = Assertions
+                .assertThrows(OtherUserTasksCantBeDeletedException.class, () -> {
+                    this.taskService.deleteTask(uuid);
+                });
+
+        assertEquals("Tarefas de outros usuarios nao podem ser deletadas.", thrown.getMessage());
     }
 }
