@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kauadev.to_do_app.domain.user.LoginDTO;
 import com.kauadev.to_do_app.domain.user.User;
 import com.kauadev.to_do_app.domain.user.UserDTO;
+import com.kauadev.to_do_app.domain.user.exceptions.UsernamePasswordNotProvidedException;
 import com.kauadev.to_do_app.infra.security.TokenService;
 import com.kauadev.to_do_app.repositories.UserRepository;
 
@@ -68,10 +70,13 @@ public class AuthenticationController {
         UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(data.username(),
                 data.password());
 
+        if (data.username() == null || data.password() == null)
+            throw new UsernamePasswordNotProvidedException();
+
         // passa o objeto usernamePassword de argumento pro método authenticate, que só
         // confirma
 
-        var authenticationManager = this.authenticationManager.authenticate(usernamePassword);
+        Authentication authenticationManager = this.authenticationManager.authenticate(usernamePassword);
 
         String token = this.tokenService.generateToken((User) authenticationManager.getPrincipal());
         return ResponseEntity.ok().body(token);

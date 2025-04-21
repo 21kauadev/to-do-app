@@ -16,6 +16,7 @@ import com.kauadev.to_do_app.domain.task.exceptions.TaskNotFoundException;
 import com.kauadev.to_do_app.domain.user.exceptions.ADMCanNotCreateTaskException;
 import com.kauadev.to_do_app.domain.user.exceptions.UserCanNotSeeOtherUsersTasks;
 import com.kauadev.to_do_app.domain.user.exceptions.UserNotFoundException;
+import com.kauadev.to_do_app.domain.user.exceptions.UsernamePasswordNotProvidedException;
 
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
@@ -87,7 +88,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<RestErrorMessage> usernameNotFoundExceptionHandler(Exception exception) {
+    public ResponseEntity<RestErrorMessage> usernameNotFoundExceptionHandler(UsernameNotFoundException exception) {
+        RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(threatedError);
+    }
+
+    @ExceptionHandler(UsernamePasswordNotProvidedException.class)
+    public ResponseEntity<RestErrorMessage> usernamePasswordNotProvidedUsernamePasswordNotProvidedExceptionHandler(
+            Exception exception) {
         RestErrorMessage threatedError = new RestErrorMessage(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(threatedError);
