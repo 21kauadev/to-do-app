@@ -90,6 +90,12 @@
     		<version>2.3.232</version>
     		<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
+		<dependency>
+    		<groupId>org.jacoco</groupId>
+    		<artifactId>jacoco-maven-plugin</artifactId>
+    		<version>0.8.12</version>
+		</dependency>
 
 	</dependencies>
 
@@ -119,6 +125,28 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+      <groupId>org.jacoco</groupId>
+      <artifactId>jacoco-maven-plugin</artifactId>
+      <version>0.8.10</version> 
+      <executions>
+        <!-- Gera o .exec ao rodar os testes -->
+        <execution>
+          <id>prepare-agent</id>
+          <goals>
+            <goal>prepare-agent</goal>
+          </goals>
+        </execution>
+        <!-- Gera o relatório de cobertura em HTML -->
+        <execution>
+          <id>report</id>
+          <phase>verify</phase>
+          <goals>
+            <goal>report</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
 		</plugins>
 	</build>
 
